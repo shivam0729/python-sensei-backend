@@ -1,68 +1,56 @@
-# backend/app/llm_client.py
-
-import os
-from dotenv import load_dotenv
-
-# Try to import Groq client
-try:
-    from groq import Groq
-except ImportError:
-    Groq = None  # type: ignore
-
-# Load variables from .env
-load_dotenv()
-
-# We'll create the client lazily so the app doesn't crash at import time
-_client = None
+import requests
+from .core.config import settings
+from .core.logger import logger
 
 
-def get_client():
-    """
-    Lazily create and return a global Groq client.
-    This avoids crashing the app at import time if the key or package is missing.
-    """
-    global _client
-    if _client is None:
-        if Groq is None:
-            raise RuntimeError(
-                "The 'groq' package is not installed.\n"
-                "Install it inside your virtualenv with:\n"
-                "    pip install groq"
-            )
-        api_key = os.getenv("GROQ_API_KEY")
-        if not api_key:
-            raise RuntimeError(
-                "GROQ_API_KEY is not set.\n"
-                "Create a .env file in your project root with a line like:\n"
-                "    GROQ_API_KEY=gsk_your_real_groq_key_here"
-            )
-        _client = Groq(api_key=api_key)
-    return _client
+GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 
-def call_openai(prompt: str) -> str:
-    """
-    Sends the prompt to a Groq LLaMA model and returns the reply.
-    We keep the function name 'call_openai' so the rest of your code works unchanged.
-    """
+def call_openai(prompt: str):
+
+    headers = {
+        "Authorization": f"Bearer {settings.GROQ_API_KEY}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "model": "llama-3.3-70b-versatile",
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "temperature": 0.5,
+    }
+
     try:
-        client = get_client()
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",  # free + fast Groq model
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=700,
-            temperature=0.2,
+
+        response = requests.post(
+            GROQ_URL,
+            headers=headers,
+            json=payload,
+            timeout=60
         )
-        return response.choices[0].message.content
+
+        if response.status_code != 200:
+
+            logger.error(
+                f"GROQ API ERROR: {response.text}"
+            )
+
+            response.raise_for_status()
+
+        data = response.json()
+
+        return data["choices"][0]["message"]["content"]
 
     except Exception as e:
-        print("LLM Error (Groq):", e)
-        # Return a readable error string so frontend can show something
-        return f"Error contacting LLM: {e}"
 
+        logger.exception(
+            f"LLM CALL FAILED: {str(e)}"
+        )
 
-# Backwards-compatible alias
-def call_llm(prompt: str) -> str:
-    return call_openai(prompt)
+        raise Exception(
+            "AI service temporarily unavailable."
+        )

@@ -5,6 +5,7 @@ annotated-doc==0.0.4
 annotated-types==0.7.0
 anyio==4.12.0
 attrs==25.4.0
+bcrypt==5.0.0
 billiard==4.2.3
 blinker==1.9.0
 cachetools==6.2.2
@@ -19,7 +20,9 @@ click-repl==0.3.0
 colorama==0.4.6
 cryptography==46.0.3
 distro==1.9.0
+dnspython==2.8.0
 ecdsa==0.19.1
+email-validator==2.3.0
 fastapi==0.122.0
 gitdb==4.0.12
 GitPython==3.1.45
@@ -53,8 +56,10 @@ pyarrow==21.0.0
 pyasn1==0.6.1
 pycparser==2.23
 pydantic==2.12.5
+pydantic-settings==2.14.1
 pydantic_core==2.41.5
 pydeck==0.9.1
+PyPDF2==3.0.1
 python-dateutil==2.9.0.post0
 python-docx==1.2.0
 python-dotenv==1.2.1

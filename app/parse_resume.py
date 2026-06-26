@@ -1,29 +1,27 @@
-# backend/app/parse_resume.py
-from pdfminer.high_level import extract_text
-import docx
+from PyPDF2 import PdfReader
 import os
 
-def parse_pdf(path: str):
+
+def extract_text_from_resume(file_path: str):
+    """
+    Extract text from uploaded PDF resume.
+    """
+
+    if not os.path.exists(file_path):
+        return ""
+
+    text = ""
+
     try:
-        text = extract_text(path)
-        return text
-    except Exception:
-        return ""
+        reader = PdfReader(file_path)
 
-def parse_docx_file(path: str):
-    try:
-        document = docx.Document(path)
-        text = "\n".join([para.text for para in document.paragraphs])
-        return text
-    except Exception:
-        return ""
+        for page in reader.pages:
+            extracted = page.extract_text()
 
-def parse_resume_file(path: str):
-    ext = os.path.splitext(path)[1].lower()
+            if extracted:
+                text += extracted + "\n"
 
-    if ext == ".pdf":
-        return parse_pdf(path)
-    elif ext in [".doc", ".docx"]:
-        return parse_docx_file(path)
-    else:
-        return ""
+    except Exception as e:
+        print("Resume parsing error:", e)
+
+    return text.strip()

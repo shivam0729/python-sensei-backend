@@ -10,12 +10,29 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class Resume(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+
+    id: int | None = Field(
+        default=None,
+        primary_key=True
+    )
+
     user_id: int
+
     filename: str
+
     path: str
-    parsed_text: Optional[str] = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+    created_at: datetime = Field(
+    default_factory=datetime.utcnow
+)
+
+    processing_status: str = Field(
+        default="pending"
+    )
+
+    processing_error: str | None = Field(
+        default=None
+    )
 
 class ResumeSuggestion(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)

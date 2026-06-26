@@ -1,33 +1,44 @@
-# backend/app/auth.py
-from passlib.context import CryptContext
 from datetime import datetime, timedelta
+
 from jose import jwt
-import os
+from passlib.context import CryptContext
 
-SECRET_KEY = os.getenv("JWT_SECRET", "mysecretkey123")
+from .core.config import settings
+
+
+pwd_context = CryptContext(
+    schemes=["pbkdf2_sha256"],
+    deprecated="auto"
+)
+
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 30
 
-# 🔥 Use pbkdf2_sha256 — clean, stable, long-password support.
-pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
-
-def normalize_password(password):
-    if password is None:
-        return ""
-    if not isinstance(password, str):
-        password = str(password)
-    return password.strip()
 
 def hash_password(password: str):
-    password = normalize_password(password)
+
     return pwd_context.hash(password)
 
-def verify_password(plain_password: str, hashed_password: str):
-    plain_password = normalize_password(plain_password)
-    return pwd_context.verify(plain_password, hashed_password)
+
+def verify_password(password: str, hashed: str):
+
+    return pwd_context.verify(
+        password,
+        hashed
+    )
+
 
 def create_access_token(data: dict):
+
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+
+    expire = datetime.utcnow() + timedelta(days=7)
+
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+    encoded_jwt = jwt.encode(
+        to_encode,
+        settings.JWT_SECRET,
+        algorithm=ALGORITHM
+    )
+
+    return encoded_jwt
