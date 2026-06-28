@@ -77,6 +77,7 @@ from fastapi import WebSocketDisconnect
 from .api.dashboard_routes import (
     router as dashboard_router
 )
+from .db import create_db_and_tables
 
 app = FastAPI(title="Python Sensei API")
 
@@ -115,9 +116,11 @@ def root():
     }
 
 
+
 @app.on_event("startup")
 def on_startup():
     os.makedirs("./uploads", exist_ok=True)
+    create_db_and_tables()
 
 print(settings.ENVIRONMENT)
 
