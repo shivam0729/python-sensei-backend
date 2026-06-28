@@ -10,9 +10,11 @@ from fastapi import (
 
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlmodel import Session, select
 import os, json, re
 from .api.auth_routes import router as auth_router
+from .api.user_routes import router as user_router
 
 from .db import get_db
 from .models import (
@@ -80,6 +82,9 @@ from .api.dashboard_routes import (
 from .db import create_db_and_tables
 
 app = FastAPI(title="Python Sensei API")
+
+# Mount uploads static directory
+app.mount("/uploads", StaticFiles(directory="./uploads"), name="uploads")
 
 app.add_middleware(
     RequestLoggingMiddleware
@@ -151,6 +156,7 @@ async def websocket_endpoint(
 # Auth
 # ---------------------------
 app.include_router(auth_router)
+app.include_router(user_router)
 app.include_router(resume_router)
 app.include_router(interview_router)
 app.include_router(job_optimization_router)

@@ -7,6 +7,9 @@ class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     email: str
     hashed_password: str
+    full_name: str = Field(default="")
+    phone_number: Optional[str] = Field(default=None)
+    profile_picture: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 class Resume(SQLModel, table=True):

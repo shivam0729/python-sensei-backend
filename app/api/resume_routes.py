@@ -8,6 +8,7 @@ from fastapi import (
 )
 
 from sqlmodel import Session, select
+import os
 
 from ..db import get_db
 
@@ -15,6 +16,7 @@ from ..models import (
     User,
     Resume,
     ResumeSuggestion,
+    JobOptimization,
 )
 
 from ..dependencies.auth_dependency import (
@@ -23,6 +25,10 @@ from ..dependencies.auth_dependency import (
 
 from ..services.resume_service import (
     upload_resume_service
+)
+
+from ..schemas.response_schema import (
+    ApiResponse,
 )
 
 router = APIRouter(
@@ -172,3 +178,54 @@ def get_resume_result(
             "suggestions": suggestion.suggestions,
         }
     }
+
+
+# -------------------------
+# DELETE RESUME
+# -------------------------
+
+@router.delete("/delete_resume/{resume_id}")
+def delete_resume(
+    resume_id: int,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    resume = db.get(Resume, resume_id)
+    if not resume or resume.user_id != user.id:
+        raise HTTPException(
+            status_code=404,
+            detail="Resume not found"
+        )
+
+    # Delete suggestions first
+    suggestions = db.exec(
+        select(ResumeSuggestion).where(
+            ResumeSuggestion.resume_id == resume_id
+        )
+    ).all()
+    for sug in suggestions:
+        db.delete(sug)
+
+    # Delete jobs optimizations
+    scans = db.exec(
+        select(JobOptimization).where(
+            JobOptimization.resume_id == resume_id
+        )
+    ).all()
+    for scan in scans:
+        db.delete(scan)
+
+    # Try to delete file
+    try:
+        if os.path.exists(resume.path):
+            os.remove(resume.path)
+    except Exception as e:
+        print("Error removing file:", e)
+
+    db.delete(resume)
+    db.commit()
+
+    return ApiResponse(
+        success=True,
+        message="Resume deleted successfully"
+    )

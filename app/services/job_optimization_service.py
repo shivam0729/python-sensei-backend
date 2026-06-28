@@ -70,10 +70,38 @@ RESUME:
         prompt
     )
 
+    import re
+    
+    ats_score = None
+    missing_keywords = None
+    improved_bullets = None
+    tailored_summary = None
+
+    # Parse result
+    score_match = re.search(r"ATS_SCORE:\s*(\d+)", result)
+    if score_match:
+        ats_score = float(score_match.group(1))
+
+    keyword_match = re.search(r"MISSING_KEYWORDS:(.*?)IMPROVED_BULLETS:", result, re.DOTALL)
+    if keyword_match:
+        missing_keywords = keyword_match.group(1).strip()
+
+    bullet_match = re.search(r"IMPROVED_BULLETS:(.*?)TAILORED_SUMMARY:", result, re.DOTALL)
+    if bullet_match:
+        improved_bullets = bullet_match.group(1).strip()
+
+    summary_match = re.search(r"TAILORED_SUMMARY:(.*)", result, re.DOTALL)
+    if summary_match:
+        tailored_summary = summary_match.group(1).strip()
+
     optimization = JobOptimization(
         user_id=user_id,
         resume_id=resume_id,
         job_description=job_description,
+        ats_score=ats_score,
+        missing_keywords=missing_keywords,
+        improved_bullets=improved_bullets,
+        tailored_summary=tailored_summary,
         raw_output=result,
     )
 

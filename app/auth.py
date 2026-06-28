@@ -42,3 +42,14 @@ def create_access_token(data: dict):
     )
 
     return encoded_jwt
+
+
+def create_password_reset_token(email: str):
+    expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode = {"sub": email, "type": "password_reset", "exp": expire}
+    encoded_jwt = jwt.encode(
+        to_encode,
+        settings.JWT_SECRET,
+        algorithm=ALGORITHM
+    )
+    return encoded_jwt
