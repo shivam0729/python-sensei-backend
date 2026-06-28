@@ -82,9 +82,16 @@ from .api.dashboard_routes import (
 from .db import create_db_and_tables
 
 app = FastAPI(title="Python Sensei API")
+# Create uploads directory before mounting
+os.makedirs("./uploads", exist_ok=True)
 
-# Mount uploads static directory
-app.mount("/uploads", StaticFiles(directory="./uploads"), name="uploads")
+# Mount uploads folder
+app.mount(
+    "/uploads",
+    StaticFiles(directory="./uploads"),
+    name="uploads",
+)
+
 
 app.add_middleware(
     RequestLoggingMiddleware
